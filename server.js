@@ -13,8 +13,12 @@ const SECRET_KEY = process.env.SECRET_KEY;
 const app = express();
 app.use(express.json());
 app.use(cors());
-
-mongoose.connect(process.env.MONGO_URI);
+mongoose.connect(process.env.MONGO_URI)
+.then(() => console.log("MongoDB Connected ✅"))
+.catch(err => {
+    console.error("MongoDB Error ❌", err);
+    process.exit(1); // stop app if DB fails
+});
 
 // Review schema
 const Review = mongoose.model("Review",{
@@ -137,18 +141,9 @@ res.status(401).send("Invalid token");
 
 }
 // test route
-app.post("/create-order", async(req,res)=>{
-
-const order = new Order({
-orderCode:req.body.orderCode
+app.get("/", (req,res)=>{
+    res.send("Backend is LIVE 🚀");
 });
-
-await order.save();
-
-res.json({message:"Order saved"});
-
-});
-
 // Admin login
 app.post("/admin/login", loginLimiter, async (req,res)=>{
 
