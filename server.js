@@ -14,7 +14,7 @@ const app = express();
 app.use(express.json());
 app.use(cors());
 
-mongoose.connect("mongodb://127.0.0.1:27017/calorix");
+mongoose.connect(process.env.MONGO_URI);
 
 // Review schema
 const Review = mongoose.model("Review",{
