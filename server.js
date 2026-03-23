@@ -7,8 +7,13 @@ const cors = require("cors");
 const rateLimit = require("express-rate-limit");
 
 const jwt = require("jsonwebtoken");
-
-
+const { v2: cloudinary } = require("cloudinary");
+const { CloudinaryStorage } = require("multer-storage-cloudinary");
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET
+});
 const SECRET_KEY = process.env.SECRET_KEY;
 const app = express();
 app.use(express.json());
@@ -61,19 +66,28 @@ res.json({message:"Order saved"});
 
 });
 // multer setup
-const storage = multer.diskStorage({
-destination:"uploads/",
-filename:(req,file,cb)=>{
-cb(null,Date.now()+"-"+file.originalname);
-}
+const storage = new CloudinaryStorage({
+  cloudinary: cloudinary,
+  params: {
+    folder: "calorix_reviews",
+    resource_type: "auto", // 🔥 important for video
+    allowed_formats: ["jpg","png","jpeg","webp","mp4","webm","mov"]
+  }
 });
 
 const upload = multer({
 storage:storage,
-limits:{fileSize:5*1024*1024},
+limits:{fileSize:20*1024*1024},
 fileFilter:(req,file,cb)=>{
 
-const allowed = ["image/jpeg","image/png","image/webp","video/mp4"];
+const allowed = [
+  "image/jpeg",
+  "image/png",
+  "image/webp",
+  "video/mp4",
+  "video/webm",
+  "video/quicktime"
+];
 
 if(allowed.includes(file.mimetype)){
 cb(null,true);
@@ -89,8 +103,8 @@ max: 5, // only 5 login attempts
 message: "Too many login attempts. Try again later."
 });
 
-// POST review
-app.post("/review",upload.single("media"),async(req,res)=>{
+app.post("/review", upload.single("media"), async (req,res)=>{
+try{
 
 let verified = false;
 
@@ -106,7 +120,7 @@ orderCode:req.body.orderCode,
 title:req.body.title,
 comment:req.body.comment,
 rating:req.body.rating,
-media:req.file ? req.file.filename : null,
+media:req.file ? req.file.path : null,
 verified: verified
 });
 
@@ -114,6 +128,10 @@ await review.save();
 
 res.send("Review saved");
 
+}catch(err){
+console.error(err);
+res.status(500).send("Upload failed");
+}
 });
 
 function verifyAdmin(req,res,next){
@@ -227,7 +245,7 @@ all: allReviews
 
 
 
-app.use("/uploads", express.static("uploads"));
+
 
 const PORT = process.env.PORT || 3000;
 
