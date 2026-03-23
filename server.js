@@ -3,7 +3,7 @@ const express = require("express");
 const mongoose = require("mongoose");
 const multer = require("multer");
 const cors = require("cors");
-const bcrypt = require("bcrypt");
+
 const rateLimit = require("express-rate-limit");
 
 const jwt = require("jsonwebtoken");
@@ -152,15 +152,11 @@ const {username,password} = req.body;
 console.log("Username:", username);
 
 if(username !== process.env.ADMIN_USER){
-return res.status(401).json({message:"Invalid credentials"});
+    return res.status(401).json({message:"Invalid credentials"});
 }
 
-const match = await bcrypt.compare(password, process.env.ADMIN_PASS);
-
-console.log("Password match:", match);
-
-if(!match){
-return res.status(401).json({message:"Invalid credentials"});
+if(password !== process.env.ADMIN_PASS){
+    return res.status(401).json({message:"Invalid credentials"});
 }
 
 const token = jwt.sign({role:"admin"}, process.env.SECRET_KEY,{expiresIn:"1h"});
