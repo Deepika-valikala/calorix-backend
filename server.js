@@ -247,7 +247,42 @@ all: allReviews
 
 
 
+app.get("/admin/analytics", verifyAdmin, async (req, res) => {
+  try {
 
+    const totalReviews = await Review.countDocuments();
+
+    const approvedReviews = await Review.countDocuments({
+      approved: true
+    });
+
+    const totalOrders = await Order.countDocuments();
+
+    const orders = await Order.find();
+
+    const totalRevenue = orders.reduce(
+      (sum, order) => sum + (order.totalAmount || 0),
+      0
+    );
+
+    res.json({
+      totalUsers: 1,
+      totalOrders,
+      totalReviews,
+      approvedReviews,
+      totalRevenue
+    });
+
+  } catch (err) {
+
+    console.error(err);
+
+    res.status(500).json({
+      message: "Server Error"
+    });
+
+  }
+});
 
 const PORT = process.env.PORT || 3000;
 
