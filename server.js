@@ -255,7 +255,21 @@ all: allReviews
 
 app.get("/admin/analytics", verifyAdmin, async (req, res) => {
   try {
+const pendingOrders = await Order.countDocuments({
+  status: "Pending"
+});
 
+const deliveredOrders = await Order.countDocuments({
+  status: "Delivered"
+});
+
+const shippedOrders = await Order.countDocuments({
+  status: "Shipped"
+});
+
+const processingOrders = await Order.countDocuments({
+  status: "Processing"
+});
     const totalReviews = await Review.countDocuments();
 
     const approvedReviews = await Review.countDocuments({
@@ -272,12 +286,17 @@ app.get("/admin/analytics", verifyAdmin, async (req, res) => {
     );
 
     res.json({
-      totalUsers: 1,
-      totalOrders,
-      totalReviews,
-      approvedReviews,
-      totalRevenue
-    });
+  totalUsers: 1,
+  totalOrders,
+  totalReviews,
+  approvedReviews,
+  totalRevenue,
+
+  pendingOrders,
+  processingOrders,
+  shippedOrders,
+  deliveredOrders
+});
 
   } catch (err) {
 
