@@ -34,6 +34,7 @@ comment:String,
 rating:Number,
 media:String,
 verified:Boolean,
+product:String,
 approved:{
 type:Boolean,
 default:false
@@ -121,7 +122,8 @@ title:req.body.title,
 comment:req.body.comment,
 rating:req.body.rating,
 media:req.file ? req.file.path : null,
-verified: verified
+verified: verified,
+product: req.body.product 
 });
 
 await review.save();
