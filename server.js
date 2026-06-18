@@ -45,17 +45,23 @@ default:Date.now
 }
 });
 const Order = mongoose.model("Order",{
-orderCode:String,
-name:String,
-phone:String,
-address:String,
-quantity:Number,
-paymentMethod:String,
-totalAmount:Number,
-createdAt:{
-type:Date,
-default:Date.now
-}
+  orderCode:String,
+  name:String,
+  phone:String,
+  address:String,
+  quantity:Number,
+  paymentMethod:String,
+  totalAmount:Number,
+
+  status:{
+    type:String,
+    default:"Pending"
+  },
+
+  createdAt:{
+    type:Date,
+    default:Date.now
+  }
 });
 
 app.post("/create-order", async (req,res)=>{
@@ -283,7 +289,29 @@ app.get("/admin/analytics", verifyAdmin, async (req, res) => {
 
   }
 });
+app.get("/admin/orders", verifyAdmin, async (req,res)=>{
 
+  const orders = await Order.find().sort({_id:-1});
+
+  res.json(orders);
+
+});
+app.put("/admin/order/:id/status",
+verifyAdmin,
+async (req,res)=>{
+
+  await Order.findByIdAndUpdate(
+    req.params.id,
+    {
+      status:req.body.status
+    }
+  );
+
+  res.json({
+    message:"Order status updated"
+  });
+
+});
 const PORT = process.env.PORT || 3000;
 
 app.listen(PORT,()=>{
